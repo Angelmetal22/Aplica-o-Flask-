@@ -1,0 +1,40 @@
+from flask import Flask, render_template, request, session, redirect, url_for
+from flask_session import Session
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'sua_chave_secreta'
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
+
+# Rota de login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # Verificar se as credenciais estão corretas (exemplo simples)
+        if username == 'admin' and password == 'password':
+            session['username'] = username
+            return redirect(url_for('home'))
+        else:
+            return render_template('login.html', error='Credenciais inválidas.')
+
+    return render_template('login.html')
+
+# Rota de logout
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('login'))
+
+# Rota protegida
+@app.route('/')
+def home():
+    if 'username' in session:
+        return render_template('home.html', username=session['username'])
+    else:
+        return redirect(url_for('login'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
